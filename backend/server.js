@@ -1,4 +1,5 @@
 require('dotenv').config();
+console.log(process.env.JWT_SECRET_KEY);
 const express = require('express');
 const app = express();
 const path = require('path');

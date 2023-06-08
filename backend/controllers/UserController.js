@@ -2,6 +2,7 @@ const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+
 // GET all users
 exports.get_users = async function(req, res) {
     try {
@@ -56,7 +57,8 @@ exports.user_login = function(req, res) {
                     // Generate a JWT token
                     const token = jwt.sign(
                         { email: user.email, userId: user._id },
-                        process.env.JWT_SECRET_KEY,  // updated line
+                        process.env.JWT_SECRET_KEY,  
+                        // updated line
                         { expiresIn: "1h" }
                     );
                     
