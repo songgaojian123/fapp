@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 // GET all users
 exports.get_users = async function(req, res) {
@@ -52,8 +53,15 @@ exports.user_login = function(req, res) {
                     return res.status(401).json({ message: "Auth failed! Error comparing passwords." });
                 }
                 if(result) {
-                    // Generate and return a token in real scenario
-                    return res.status(200).json({ message: "Auth successful!" });
+                    // Generate a JWT token
+                    const token = jwt.sign(
+                        { email: user.email, userId: user._id },
+                        process.env.JWT_SECRET_KEY,  // updated line
+                        { expiresIn: "1h" }
+                    );
+                    
+                    // Return user and token
+                    return res.status(200).json({ message: "Auth successful!", user, token });
                 }
                 return res.status(401).json({ message: "Auth failed! Incorrect password." });
             });
@@ -63,6 +71,8 @@ exports.user_login = function(req, res) {
             res.status(500).json({ error: err });
         });
 };
+
+
 
 
 // GET a user's information
@@ -125,4 +135,38 @@ exports.delete_user = async function(req, res) {
     } catch(err) {
         res.status(500).json({ message: err.message });
     }
+};
+
+// Add a new transaction
+
+// Add a transaction to user's spending history
+exports.add_transaction = async function(req, res) {
+    const userId = req.params.id;
+    const transaction = req.body;
+
+    try {
+        const user = await User.findById(userId);
+        if (user) {
+            user.spendingHistory.push(transaction);
+            const savedUser = await user.save();
+            res.status(201).json(savedUser.spendingHistory);
+        } else {
+            res.status(404).json({ message: "User not found" });
+        }
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+
+// Get spending history
+exports.get_spending_history = async function(req, res) {
+    const userId = req.params.id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(user.spendingHistory);
 };
