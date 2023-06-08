@@ -4,7 +4,6 @@ const path = require('path');
 const port = process.env.PORT || 5000;
 const cors = require('cors');
 
-
 app.use(cors());
 
 // MongoDB connection
@@ -16,12 +15,12 @@ mongoose.connect('mongodb+srv://Gaojian:Qwddjb123@testcluster0.odxpx2c.mongodb.n
 // Middleware
 app.use(express.json());
 
+// Serve static files from the "frontend/public" directory
+app.use(express.static(path.join(__dirname, '../frontend/public')));
+
 // Routes
 const userRoutes = require('./routes/userRoutes');
 app.use('/users', userRoutes);
 
 // Start the server
 app.listen(port, () => console.log(`Server is running on port ${port}`));
-
-// Serve static files from the "frontend/public" directory
-app.use(express.static(path.join(__dirname, '../frontend/public')));

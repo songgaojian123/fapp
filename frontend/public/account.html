@@ -1,0 +1,27 @@
+<div class="container">
+    <h2>Account Details</h2>
+    <div id="user-details"></div>
+</div>
+
+<script>
+    // get the user details from local storage
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = localStorage.getItem('token');
+    
+    // display the user details
+    document.getElementById('user-details').textContent = JSON.stringify(user, null, 2);
+
+    // get the latest user details from the server
+    fetch(`http://localhost:5000/users/${user._id}`, {
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+    })
+        .then(response => response.json())
+        .then(data => {
+            // update the user details in local storage and on the page
+            localStorage.setItem('user', JSON.stringify(data));
+            document.getElementById('user-details').textContent = JSON.stringify(data, null, 2);
+        })
+        .catch(error => console.error('Error:', error));
+</script>
