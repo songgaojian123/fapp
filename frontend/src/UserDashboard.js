@@ -1,28 +1,31 @@
 import React, { useState, useEffect } from 'react';
 
 const UserDashboard = () => {
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
-  const [token, setToken] = useState(localStorage.getItem('token'));
-  const [amount, setAmount] = useState(0);
-  const [category, setCategory] = useState("");
-  const [description, setDescription] = useState("");
-  const [date, setDate] = useState("");
-  const [spendingHistory, setSpendingHistory] = useState([]);
+    const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || {});
+    const [token, setToken] = useState(localStorage.getItem('token') || '');
+    const [amount, setAmount] = useState(0);
+    const [category, setCategory] = useState("");
+    const [description, setDescription] = useState("");
+    const [date, setDate] = useState("");
+    const [spendingHistory, setSpendingHistory] = useState([]);
 
   useEffect(() => {
     // Fetch user details from server
-    fetch(`/users/${user._id}`, {
-      headers: {
-        'Authorization': 'Bearer ' + token
-      },
-    })
-      .then(response => response.json())
-      .then(data => {
-        localStorage.setItem('user', JSON.stringify(data));
-        setSpendingHistory(data.spendingHistory);
-      })
-      .catch(error => console.error('Error:', error));
-  }, []);
+    if (user._id && token) {
+        fetch(`/users/${user._id}`, {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          },
+        })
+          .then(response => response.json())
+          .then(data => {
+            localStorage.setItem('user', JSON.stringify(data));
+            setUser(data);
+            setSpendingHistory(data.spendingHistory);
+          })
+          .catch(error => console.error('Error:', error));
+      }
+    }, [user._id, token]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

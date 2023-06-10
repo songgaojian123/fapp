@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const bcrypt = require('bcrypt');
+const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 
@@ -19,7 +19,7 @@ exports.create_user = async function(req, res) {
     const { name, email, password } = req.body;
 
     // hash the password
-    bcrypt.hash(password, 10, async (err, hashedPassword) => {
+    bcryptjs.hash(password, 10, async (err, hashedPassword) => {
         if (err) {
             return res.status(500).json({ error: err });
         }
@@ -49,7 +49,7 @@ exports.user_login = function(req, res) {
                 return res.status(401).json({ message: "Auth failed! Email not found." });
             }
             //compare the password
-            bcrypt.compare(password, user.password, function(err, result) {
+            bcryptjs.compare(password, user.password, function(err, result) {
                 if(err) {
                     return res.status(401).json({ message: "Auth failed! Error comparing passwords." });
                 }

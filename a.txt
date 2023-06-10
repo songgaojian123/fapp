@@ -1,0 +1,10 @@
+/my-app
+  /frontend
+    /public
+    /src
+      main.js
+      styles.css
+    package.json
+  /backend
+    server.js
+    package.json
