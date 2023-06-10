@@ -1,27 +1,25 @@
 <div class="container">
-    <h2>Account Details</h2>
-    <div id="user-details"></div>
+    <h2>Welcome, <span id="user-name"></span></h2>
+
+    <h3>Add New Transaction</h3>
+    <form id="transaction-form">
+        <label for="amount">Amount:</label><br>
+        <input type="number" id="amount" name="amount" required><br>
+
+        <label for="category">Category:</label><br>
+        <input type="text" id="category" name="category" required><br>
+
+        <label for="description">Description:</label><br>
+        <textarea id="description" name="description" rows="4" cols="50"></textarea><br>
+
+        <label for="date">Date:</label><br>
+        <input type="date" id="date" name="date" required><br>
+
+        <input type="submit" value="Submit">
+    </form>
+
+    <h3>Your Spending History</h3>
+    <div id="spending-history"></div>
+    <script src="../src/js/account.js"></script>
+
 </div>
-
-<script>
-    // get the user details from local storage
-    const user = JSON.parse(localStorage.getItem('user'));
-    const token = localStorage.getItem('token');
-    
-    // display the user details
-    document.getElementById('user-details').textContent = JSON.stringify(user, null, 2);
-
-    // get the latest user details from the server
-    fetch(`http://localhost:5000/users/${user._id}`, {
-        headers: {
-            'Authorization': 'Bearer ' + token
-        },
-    })
-        .then(response => response.json())
-        .then(data => {
-            // update the user details in local storage and on the page
-            localStorage.setItem('user', JSON.stringify(data));
-            document.getElementById('user-details').textContent = JSON.stringify(data, null, 2);
-        })
-        .catch(error => console.error('Error:', error));
-</script>
