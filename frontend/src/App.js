@@ -1,13 +1,23 @@
 import React from 'react';
-import SignUp from './SignUp'; // adjust the path according to your file structure
-import Login from './Login'; // adjust the path according to your file structure
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import SignUp from './SignUp'; 
+import Login from './Login'; 
+import UserPage from './UserDashboard';
+
+const AuthPage = () => (
+  <div>
+    <SignUp />
+    <Login />
+  </div>
+);
 
 const App = () => (
-    <div>
-        <SignUp />
-        <Login />
-    </div>
+  <Router>
+    <Routes>
+      <Route path="/" element={<AuthPage />} />
+      <Route path="/user" element={<UserPage />} />
+    </Routes>
+  </Router>
 );
 
 export default App;
-

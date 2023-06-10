@@ -29,7 +29,7 @@ const Login = () => {
             localStorage.setItem('user', JSON.stringify(data.user));
             localStorage.setItem('token', data.token);
             // redirect the user to their account page
-            window.location.href = 'account.html';
+            window.location.href = 'user';
         })
         .catch((error) => {
             setErrorMessage(error.message);
