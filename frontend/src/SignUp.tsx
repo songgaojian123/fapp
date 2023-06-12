@@ -13,8 +13,7 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Link as RouterLink } from 'react-router-dom';
-
-function Copyright(props) {
+function Copyright(props: any) {
   return (
     <Typography variant="body2" color="text.secondary" align="center" {...props}>
       {'Copyright © '}
@@ -30,12 +29,12 @@ function Copyright(props) {
 const defaultTheme = createTheme();
 
 export default function SignUp() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [firstName, setFirstName] = useState<string>('');
+  const [lastName, setLastName] = useState<string>('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     fetch('/users', {
       method: 'POST',
