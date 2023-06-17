@@ -17,7 +17,7 @@ const UserDashboard = () => {
 
     useEffect(() => {
         if (user._id && token) {
-            fetch(`/users/${user._id}`, {
+            fetch(process.env.REACT_APP_BACKEND_URL + `/users/${user._id}`, {
                 headers: {
                     'Authorization': 'Bearer ' + token
                 },
@@ -33,7 +33,7 @@ const UserDashboard = () => {
     }, [user._id, token]);
 
     const processTransactionText = async () => {
-        const response = await fetch(`/users/${user._id}/process-transaction-text`, {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `/users/${user._id}/process-transaction-text`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -64,7 +64,7 @@ const UserDashboard = () => {
             date
         };
 
-        fetch(`/users/${user._id}/transactions`, {
+        fetch(process.env.REACT_APP_BACKEND_URL + `/users/${user._id}/transactions`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

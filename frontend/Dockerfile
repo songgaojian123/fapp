@@ -13,8 +13,11 @@ RUN npm install
 # copy the rest of the frontend code
 COPY . .
 
+# build the app for production
+RUN npm run build
+
 # expose port 3000
 EXPOSE 3000
 
-# start the app
-CMD ["npm", "start"]
+# serve the app using a production server
+CMD ["npx", "serve", "-s", "build"]
