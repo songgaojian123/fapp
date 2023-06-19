@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Container, Grid, TextField, Typography } from '@mui/material';
+import { Box, Button, Container, Grid, TextField, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import Pagination from '@mui/material/Pagination';
 
 const UserDashboard = () => {
     const itemsPerPage = 10;
     const [page, setPage] = useState(1);
-
+    const [editingTransaction, setEditingTransaction] = useState(null);
     const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || {});
     const [token, setToken] = useState(localStorage.getItem('token') || '');
     const [transactionText, setTransactionText] = useState("");
@@ -14,6 +14,18 @@ const UserDashboard = () => {
     const [description, setDescription] = useState("");
     const [date, setDate] = useState("");
     const [spendingHistory, setSpendingHistory] = useState([]);
+    const [sortConfig, setSortConfig] = useState(null);
+
+    // Sorting function
+    const onSort = (columnName) => {
+        let direction = 'ascending';
+
+        if (sortConfig && sortConfig.key === columnName && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+
+        setSortConfig({ key: columnName, direction });
+    };
 
     useEffect(() => {
         if (user._id && token) {
@@ -26,11 +38,23 @@ const UserDashboard = () => {
             .then(data => {
                 localStorage.setItem('user', JSON.stringify(data));
                 setUser(data);
-                setSpendingHistory(data.spendingHistory);
+                let sortedData = [...data.spendingHistory];
+                if (sortConfig !== null) {
+                    sortedData.sort((a, b) => {
+                        if (a[sortConfig.key] < b[sortConfig.key]) {
+                            return sortConfig.direction === 'ascending' ? -1 : 1;
+                        }
+                        if (a[sortConfig.key] > b[sortConfig.key]) {
+                            return sortConfig.direction === 'ascending' ? 1 : -1;
+                        }
+                        return 0;
+                    });
+                }
+                setSpendingHistory(sortedData);
             })
             .catch(error => console.error('Error:', error));
         }
-    }, [user._id, token]);
+    }, [user._id, token, sortConfig]);
 
     const processTransactionText = async () => {
         const response = await fetch(process.env.REACT_APP_BACKEND_URL + `/users/${user._id}/process-transaction-text`, {
@@ -51,9 +75,23 @@ const UserDashboard = () => {
         }
     };
     
-    
-    
-    
+    const deleteTransaction = async (transactionId) => {
+        await fetch(process.env.REACT_APP_BACKEND_URL + `/users/${user._id}/transactions/${transactionId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            },
+        });
+        setSpendingHistory(spendingHistory.filter(transaction => transaction._id !== transactionId));
+    };
+
+    const editTransaction = (transaction) => {
+        setAmount(transaction.amount);
+        setCategory(transaction.category);
+        setDescription(transaction.description);
+        setDate(transaction.date);
+        setEditingTransaction(transaction._id);
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -64,8 +102,13 @@ const UserDashboard = () => {
             date
         };
 
-        fetch(process.env.REACT_APP_BACKEND_URL + `/users/${user._id}/transactions`, {
-            method: 'POST',
+        const url = editingTransaction 
+            ? `${process.env.REACT_APP_BACKEND_URL}/users/${user._id}/transactions/${editingTransaction}`
+            : `${process.env.REACT_APP_BACKEND_URL}/users/${user._id}/transactions`;
+        const method = editingTransaction ? 'PATCH' : 'POST';
+
+        fetch(url, {
+            method,
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + token
@@ -74,8 +117,12 @@ const UserDashboard = () => {
         })
         .then(response => response.json())
         .then(data => {
-            console.log('Success:', data);
-            setSpendingHistory(prev => [...prev, data]);
+            if (editingTransaction) {
+                setSpendingHistory(spendingHistory.map(transaction => transaction._id === data._id ? data : transaction));
+                setEditingTransaction(null);
+            } else {
+                setSpendingHistory(prev => [...prev, data]);
+            }
         })
         .catch((error) => {
             console.error('Error:', error);
@@ -109,6 +156,7 @@ const UserDashboard = () => {
                                 variant="outlined"
                                 fullWidth
                                 required
+                                value={amount} 
                                 onChange={(e) => setAmount(e.target.value)}
                             />
                         </Grid>
@@ -118,6 +166,7 @@ const UserDashboard = () => {
                                 variant="outlined"
                                 fullWidth
                                 required
+                                value={category} 
                                 onChange={(e) => setCategory(e.target.value)}
                             />
                         </Grid>
@@ -128,6 +177,7 @@ const UserDashboard = () => {
                                 multiline
                                 rows={4}
                                 fullWidth
+                                value={description} 
                                 onChange={(e) => setDescription(e.target.value)}
                             />
                         </Grid>
@@ -138,6 +188,7 @@ const UserDashboard = () => {
                                 type="date"
                                 fullWidth
                                 required
+                                value={date} 
                                 InputLabelProps={{
                                     shrink: true,
                                 }}
@@ -145,19 +196,40 @@ const UserDashboard = () => {
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <Button type="submit" variant="contained" fullWidth>Submit</Button>
+                            <Button type="submit" variant="contained" fullWidth>{editingTransaction ? 'Update' : 'Submit'}</Button>
                         </Grid>
                     </Grid>
                 </form>
             </Box>
 
             <Typography variant="h5" gutterBottom>Your Spending History</Typography>
-            {spendingHistory.slice((page - 1) * itemsPerPage, page * itemsPerPage).map((transaction, index) => (
-                <Box key={index} sx={{ my: 2 }}>
-                    <Typography>Amount: {transaction.amount}, Category: {transaction.category}, Description: {transaction.description}, Date: {transaction.date}</Typography>
-                </Box>
-            ))}
-
+            <TableContainer>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                        <TableCell onClick={() => onSort('amount')} sx={{cursor: 'pointer'}}>Amount</TableCell>
+                        <TableCell onClick={() => onSort('category')} sx={{cursor: 'pointer'}}>Category</TableCell>
+                        <TableCell onClick={() => onSort('description')} sx={{cursor: 'pointer'}}>Description</TableCell>
+                        <TableCell onClick={() => onSort('date')} sx={{cursor: 'pointer'}}>Date</TableCell>
+                        <TableCell>Actions</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {spendingHistory.slice((page - 1) * itemsPerPage, page * itemsPerPage).map((transaction, index) => (
+                            <TableRow key={index}>
+                                <TableCell>{transaction.amount}</TableCell>
+                                <TableCell>{transaction.category}</TableCell>
+                                <TableCell>{transaction.description}</TableCell>
+                                <TableCell>{transaction.date}</TableCell>
+                                <TableCell>
+                                    <Button onClick={() => deleteTransaction(transaction._id)}>Delete</Button>
+                                    <Button onClick={() => editTransaction(transaction)}>Edit</Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
             <Pagination count={Math.ceil(spendingHistory.length / itemsPerPage)} page={page} onChange={handleChange} />
         </Container>
     );

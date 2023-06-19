@@ -17,6 +17,10 @@ router.patch('/:id', UserController.update_user);
 router.delete('/:id', UserController.delete_user);
 router.post('/:id/transactions', UserController.add_transaction);
 
+// New routes for deleting and editing transactions
+router.delete('/:id/transactions/:transactionId', UserController.delete_transaction);
+router.patch('/:id/transactions/:transactionId', UserController.edit_transaction);
+
 router.post('/:id/process-transaction-text', async (req, res) => {
     const userId = req.params.id;
     try {

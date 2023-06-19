@@ -172,3 +172,58 @@ exports.get_spending_history = async function(req, res) {
 
     res.json(user.spendingHistory);
 };
+
+// Delete a transaction from a user's spending history
+exports.delete_transaction = async function(req, res) {
+    const userId = req.params.id;
+    const transactionId = req.params.transactionId;
+
+    // Log the userId and transactionId received
+    console.log("User ID: ", userId);
+    console.log("Transaction ID: ", transactionId);
+
+    try {
+        const user = await User.updateOne(
+            { _id: userId },
+            { $pull: { spendingHistory: { _id: transactionId } } }
+        );
+        if (user.nModified === 0) {
+            return res.status(404).json({ message: "Transaction not found" });
+        }
+        res.status(200).json(updatedUser.spendingHistory);
+    } catch (err) {
+        console.log("Error: ", err);
+        res.status(500).json({ message: err.message });
+    }
+    
+};
+
+// Edit a transaction in a user's spending history
+exports.edit_transaction = async function(req, res) {
+    const userId = req.params.id;
+    const transactionId = req.params.transactionId;
+    const updatedTransaction = req.body;
+
+    try {
+        const user = await User.findById(userId);
+        if (user) {
+            const transaction = user.spendingHistory.id(transactionId);
+            if (!transaction) {
+                return res.status(404).json({ message: "Transaction not found" });
+            }
+
+            // Assuming that the updated transaction info is sent in the body of the request
+            transaction.amount = updatedTransaction.amount;
+            transaction.category = updatedTransaction.category;
+            transaction.description = updatedTransaction.description;
+            transaction.date = updatedTransaction.date;
+
+            const savedUser = await user.save();
+            res.status(200).json(savedUser.spendingHistory);
+        } else {
+            res.status(404).json({ message: "User not found" });
+        }
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
