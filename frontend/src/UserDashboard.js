@@ -220,7 +220,7 @@ const UserDashboard = () => {
                                 <TableCell>{transaction.amount}</TableCell>
                                 <TableCell>{transaction.category}</TableCell>
                                 <TableCell>{transaction.description}</TableCell>
-                                <TableCell>{transaction.date}</TableCell>
+                                <TableCell>{new Date(transaction.date).toLocaleDateString()}</TableCell>
                                 <TableCell>
                                     <Button onClick={() => deleteTransaction(transaction._id)}>Delete</Button>
                                     <Button onClick={() => editTransaction(transaction)}>Edit</Button>

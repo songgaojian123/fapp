@@ -7,7 +7,7 @@ const port = process.env.PORT || 5000;
 const cors = require('cors');
 
 
-app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(cors({}));
 
 // MongoDB connection
 const mongoose = require('mongoose');
@@ -29,4 +29,5 @@ const userRoutes = require('./routes/userRoutes');
 app.use('/users', userRoutes);
 
 // Start the server
-app.listen(port, () => console.log(`Server is running on port ${port}`));
+app.listen(port, '0.0.0.0', () => console.log(`Server is running on port ${port}`));
+
