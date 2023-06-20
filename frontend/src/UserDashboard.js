@@ -29,7 +29,7 @@ const UserDashboard = () => {
 
     useEffect(() => {
         if (user._id && token) {
-            fetch("http://18.223.195.246" + `/users/${user._id}`, {
+            fetch("https://backend.songgaojian.com/" + `/users/${user._id}`, {
                 headers: {
                     'Authorization': 'Bearer ' + token
                 },
@@ -57,7 +57,7 @@ const UserDashboard = () => {
     }, [user._id, token, sortConfig]);
 
     const processTransactionText = async () => {
-        const response = await fetch("http://18.223.195.246" + `/users/${user._id}/process-transaction-text`, {
+        const response = await fetch("https://backend.songgaojian.com/" + `/users/${user._id}/process-transaction-text`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ const UserDashboard = () => {
     };
     
     const deleteTransaction = async (transactionId) => {
-        await fetch("http://18.223.195.246" + `/users/${user._id}/transactions/${transactionId}`, {
+        await fetch("https://backend.songgaojian.com/" + `/users/${user._id}/transactions/${transactionId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': 'Bearer ' + token
@@ -103,8 +103,8 @@ const UserDashboard = () => {
         };
 
         const url = editingTransaction 
-            ? `${"http://18.223.195.246"}/users/${user._id}/transactions/${editingTransaction}`
-            : `${"http://18.223.195.246"}/users/${user._id}/transactions`;
+            ? `${"https://backend.songgaojian.com/"}/users/${user._id}/transactions/${editingTransaction}`
+            : `${"https://backend.songgaojian.com/"}/users/${user._id}/transactions`;
         const method = editingTransaction ? 'PATCH' : 'POST';
 
         fetch(url, {

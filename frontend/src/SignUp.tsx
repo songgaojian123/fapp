@@ -36,7 +36,7 @@ export default function SignUp() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    fetch("http://18.223.195.246" + '/users', {
+    fetch("https://backend.songgaojian.com/" + '/users', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
