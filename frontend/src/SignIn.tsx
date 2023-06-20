@@ -41,7 +41,7 @@ export default function SignIn() {
     event.preventDefault();
 
     // your fetch logic here
-    fetch(process.env.REACT_APP_BACKEND_URL + '/users/login', {
+    fetch("http://18.223.195.246" + '/users/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

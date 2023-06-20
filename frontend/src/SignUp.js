@@ -37,7 +37,7 @@ export default function SignUp() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    fetch(process.env.REACT_APP_BACKEND_URL + '/users', {
+    fetch("http://18.223.195.246" + '/users', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

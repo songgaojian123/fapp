@@ -11,7 +11,7 @@ COPY . .
 RUN npm install 
 
 # Bind the port that your app will run on
-EXPOSE 5000
+EXPOSE 80
 
 # Define the Docker command to run your app
 CMD [ "node", "server.js" ]
