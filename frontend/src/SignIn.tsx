@@ -41,7 +41,7 @@ export default function SignIn() {
     event.preventDefault();
 
     // your fetch logic here
-    fetch("https://backend.songgaojian.com/" + '/users/login', {
+    fetch("https://backend.songgaojian.com" + '/users/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
