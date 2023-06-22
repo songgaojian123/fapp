@@ -33,6 +33,8 @@ export default function SignUp() {
   const [password, setPassword] = useState<string>('');
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
+  const [successMessage, setSuccessMessage] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -47,9 +49,20 @@ export default function SignUp() {
         password: password,
       }),
     })
-    .then(response => response.json())
-    .then(data => console.log(data))
-    .catch(error => console.error('Error:', error));
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log(data);
+      setSuccessMessage('Sign up successful! Please go back to sign in page.');
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      setErrorMessage('Failed to sign up. Please try again.');
+    });
   };
 
   return (
@@ -70,6 +83,8 @@ export default function SignUp() {
           <Typography component="h1" variant="h5">
             Sign up
           </Typography>
+          {successMessage && <Typography color="primary" align="center">{successMessage}</Typography>}
+          {errorMessage && <Typography color="error" align="center">{errorMessage}</Typography>}
           <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
