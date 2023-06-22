@@ -29,7 +29,7 @@ const UserDashboard = () => {
 
     useEffect(() => {
         if (user._id && token) {
-            fetch("https://backend.songgaojian.com" + `/users/${user._id}`, {
+            fetch(process.env.REACT_APP_BACKEND_URL + `/users/${user._id}`, {
                 headers: {
                     'Authorization': 'Bearer ' + token
                 },
@@ -57,7 +57,7 @@ const UserDashboard = () => {
     }, [user._id, token, sortConfig]);
 
     const processTransactionText = async () => {
-        const response = await fetch("https://backend.songgaojian.com" + `/users/${user._id}/process-transaction-text`, {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `/users/${user._id}/process-transaction-text`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -77,7 +77,7 @@ const UserDashboard = () => {
     };
     
     const deleteTransaction = async (transactionId) => {
-        const response = await fetch("https://backend.songgaojian.com" + `/users/${user._id}/transactions/${transactionId}`, {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `/users/${user._id}/transactions/${transactionId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': 'Bearer ' + token
@@ -112,8 +112,8 @@ const UserDashboard = () => {
         };
 
         const url = editingTransaction 
-            ? `${"https://backend.songgaojian.com"}/users/${user._id}/transactions/${editingTransaction}`
-            : `${"https://backend.songgaojian.com"}/users/${user._id}/transactions`;
+            ? `${process.env.REACT_APP_BACKEND_URL}/users/${user._id}/transactions/${editingTransaction}`
+            : `${process.env.REACT_APP_BACKEND_URL}/users/${user._id}/transactions`;
         const method = editingTransaction ? 'PATCH' : 'POST';
 
         fetch(url, {
