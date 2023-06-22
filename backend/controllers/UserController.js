@@ -177,8 +177,7 @@ exports.get_spending_history = async function(req, res) {
 exports.delete_transaction = async function(req, res) {
     const userId = req.params.id;
     const transactionId = req.params.transactionId;
-
-    // Log the userId and transactionId received
+// Log the userId and transactionId received
     console.log("User ID: ", userId);
     console.log("Transaction ID: ", transactionId);
 
@@ -190,13 +189,14 @@ exports.delete_transaction = async function(req, res) {
         if (user.nModified === 0) {
             return res.status(404).json({ message: "Transaction not found" });
         }
-        res.status(200).json(updatedUser.spendingHistory);
+        res.status(200).json({ message: "Transaction deleted successfully." });
     } catch (err) {
         console.log("Error: ", err);
         res.status(500).json({ message: err.message });
     }
     
 };
+
 
 // Edit a transaction in a user's spending history
 exports.edit_transaction = async function(req, res) {

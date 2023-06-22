@@ -71,25 +71,34 @@ const UserDashboard = () => {
             setAmount(transactionData.amount);
             setCategory(transactionData.category);
             setDescription(transactionData.description);
-            setDate(transactionData.date);
+            setDate(transactionData.date.substring(0, 10));
+
         }
     };
     
     const deleteTransaction = async (transactionId) => {
-        await fetch("https://backend.songgaojian.com" + `/users/${user._id}/transactions/${transactionId}`, {
+        const response = await fetch("https://backend.songgaojian.com" + `/users/${user._id}/transactions/${transactionId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': 'Bearer ' + token
             },
         });
-        setSpendingHistory(spendingHistory.filter(transaction => transaction._id !== transactionId));
+    
+        if(response.ok) { // Check if response status is 200-299
+            setSpendingHistory(spendingHistory.filter(transaction => transaction._id !== transactionId));
+        } else {
+            // Handle error
+            const errorMessage = await response.text();
+            console.error('Error:', errorMessage);
+        }
     };
+    
 
     const editTransaction = (transaction) => {
         setAmount(transaction.amount);
         setCategory(transaction.category);
         setDescription(transaction.description);
-        setDate(transaction.date);
+        setDate(transaction.date.substring(0, 10));
         setEditingTransaction(transaction._id);
     };
 
