@@ -72,7 +72,7 @@ const UserDashboard = () => {
             setCategory(transactionData.category);
             setDescription(transactionData.description);
             setDate(transactionData.date.substring(0, 10));
-
+            setType(transactionData.type);
         }
     };
 
@@ -99,6 +99,7 @@ const UserDashboard = () => {
         setCategory(transaction.category);
         setDescription(transaction.description);
         setDate(transaction.date.substring(0, 10));
+        setType(transactionData.type);
         setEditingTransaction(transaction._id);
     };
 
