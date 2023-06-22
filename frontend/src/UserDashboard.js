@@ -13,9 +13,9 @@ const UserDashboard = () => {
     const [category, setCategory] = useState("");
     const [description, setDescription] = useState("");
     const [date, setDate] = useState("");
+    const [type, setType] = useState("unspecified");  // New state for type
     const [spendingHistory, setSpendingHistory] = useState([]);
     const [sortConfig, setSortConfig] = useState(null);
-    const [type, setType] = useState("");
     // Sorting function
     const onSort = (columnName) => {
         let direction = 'ascending';
@@ -99,7 +99,7 @@ const UserDashboard = () => {
         setCategory(transaction.category);
         setDescription(transaction.description);
         setDate(transaction.date.substring(0, 10));
-        setType(transaction.type);
+        setType(transaction.type); // set the Type from the transaction
         setEditingTransaction(transaction._id);
     };
 
@@ -207,19 +207,19 @@ const UserDashboard = () => {
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <Select
-                                value={type}
-                                fullWidth
-                                onChange={(e) => setType(e.target.value)}
+                            <TextField
+                                select
                                 label="Type"
                                 variant="outlined"
+                                fullWidth
+                                required
+                                value={type}
+                                onChange={(e) => setType(e.target.value)}
                             >
-                                <MenuItem value="">
-                                    <em>None</em>
-                                </MenuItem>
-                                <MenuItem value="Spending">Spending</MenuItem>
-                                <MenuItem value="Income">Income</MenuItem>
-                            </Select>
+                                <MenuItem value="unspecified">Unspecified</MenuItem>
+                                <MenuItem value="income">Income</MenuItem>
+                                <MenuItem value="expense">Expense</MenuItem>
+                            </TextField>
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <Button type="submit" variant="contained" fullWidth>{editingTransaction ? 'Update' : 'Submit'}</Button>
@@ -237,7 +237,7 @@ const UserDashboard = () => {
                             <TableCell onClick={() => onSort('category')} sx={{ cursor: 'pointer' }}>Category</TableCell>
                             <TableCell onClick={() => onSort('description')} sx={{ cursor: 'pointer' }}>Description</TableCell>
                             <TableCell onClick={() => onSort('date')} sx={{ cursor: 'pointer' }}>Date</TableCell>
-                            <TableCell onClick={() => onSort('type')} sx={{cursor: 'pointer'}}>Type</TableCell>
+                            <TableCell onClick={() => onSort('type')} sx={{ cursor: 'pointer' }}>Type</TableCell>
                             <TableCell>Actions</TableCell>
                         </TableRow>
                     </TableHead>
@@ -248,7 +248,7 @@ const UserDashboard = () => {
                                 <TableCell>{transaction.category}</TableCell>
                                 <TableCell>{transaction.description}</TableCell>
                                 <TableCell>{new Date(transaction.date).toLocaleDateString()}</TableCell>
-                                <TableCell>{transaction.type}</TableCell>
+                                <TableCell>{transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}</TableCell> 
                                 <TableCell>
                                     <Button onClick={() => deleteTransaction(transaction._id)}>Delete</Button>
                                     <Button onClick={() => editTransaction(transaction)}>Edit</Button>
@@ -256,6 +256,7 @@ const UserDashboard = () => {
                             </TableRow>
                         ))}
                     </TableBody>
+
                 </Table>
             </TableContainer>
             <Pagination count={Math.ceil(spendingHistory.length / itemsPerPage)} page={page} onChange={handleChange} />
