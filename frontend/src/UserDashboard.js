@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Container, Grid, TextField, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Box, Button, Container, Grid, TextField, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem } from '@mui/material';
 import Pagination from '@mui/material/Pagination';
 
 const UserDashboard = () => {
@@ -15,7 +15,7 @@ const UserDashboard = () => {
     const [date, setDate] = useState("");
     const [spendingHistory, setSpendingHistory] = useState([]);
     const [sortConfig, setSortConfig] = useState(null);
-
+    const [type, setType] = useState("");
     // Sorting function
     const onSort = (columnName) => {
         let direction = 'ascending';
@@ -34,25 +34,25 @@ const UserDashboard = () => {
                     'Authorization': 'Bearer ' + token
                 },
             })
-            .then(response => response.json())
-            .then(data => {
-                localStorage.setItem('user', JSON.stringify(data));
-                setUser(data);
-                let sortedData = [...data.spendingHistory];
-                if (sortConfig !== null) {
-                    sortedData.sort((a, b) => {
-                        if (a[sortConfig.key] < b[sortConfig.key]) {
-                            return sortConfig.direction === 'ascending' ? -1 : 1;
-                        }
-                        if (a[sortConfig.key] > b[sortConfig.key]) {
-                            return sortConfig.direction === 'ascending' ? 1 : -1;
-                        }
-                        return 0;
-                    });
-                }
-                setSpendingHistory(sortedData);
-            })
-            .catch(error => console.error('Error:', error));
+                .then(response => response.json())
+                .then(data => {
+                    localStorage.setItem('user', JSON.stringify(data));
+                    setUser(data);
+                    let sortedData = [...data.spendingHistory];
+                    if (sortConfig !== null) {
+                        sortedData.sort((a, b) => {
+                            if (a[sortConfig.key] < b[sortConfig.key]) {
+                                return sortConfig.direction === 'ascending' ? -1 : 1;
+                            }
+                            if (a[sortConfig.key] > b[sortConfig.key]) {
+                                return sortConfig.direction === 'ascending' ? 1 : -1;
+                            }
+                            return 0;
+                        });
+                    }
+                    setSpendingHistory(sortedData);
+                })
+                .catch(error => console.error('Error:', error));
         }
     }, [user._id, token, sortConfig]);
 
@@ -67,7 +67,7 @@ const UserDashboard = () => {
         });
         const transactionData = await response.json();
         // set the Amount, Category, Description, Date from transactionData
-        if(transactionData) {
+        if (transactionData) {
             setAmount(transactionData.amount);
             setCategory(transactionData.category);
             setDescription(transactionData.description);
@@ -75,7 +75,7 @@ const UserDashboard = () => {
 
         }
     };
-    
+
     const deleteTransaction = async (transactionId) => {
         const response = await fetch(process.env.REACT_APP_BACKEND_URL + `/users/${user._id}/transactions/${transactionId}`, {
             method: 'DELETE',
@@ -83,8 +83,8 @@ const UserDashboard = () => {
                 'Authorization': 'Bearer ' + token
             },
         });
-    
-        if(response.ok) { // Check if response status is 200-299
+
+        if (response.ok) { // Check if response status is 200-299
             setSpendingHistory(spendingHistory.filter(transaction => transaction._id !== transactionId));
         } else {
             // Handle error
@@ -92,7 +92,7 @@ const UserDashboard = () => {
             console.error('Error:', errorMessage);
         }
     };
-    
+
 
     const editTransaction = (transaction) => {
         setAmount(transaction.amount);
@@ -108,10 +108,11 @@ const UserDashboard = () => {
             amount,
             category,
             description,
-            date
+            date,
+            type
         };
 
-        const url = editingTransaction 
+        const url = editingTransaction
             ? `${process.env.REACT_APP_BACKEND_URL}/users/${user._id}/transactions/${editingTransaction}`
             : `${process.env.REACT_APP_BACKEND_URL}/users/${user._id}/transactions`;
         const method = editingTransaction ? 'PATCH' : 'POST';
@@ -124,18 +125,18 @@ const UserDashboard = () => {
             },
             body: JSON.stringify(transaction),
         })
-        .then(response => response.json())
-        .then(data => {
-            if (editingTransaction) {
-                setSpendingHistory(spendingHistory.map(transaction => transaction._id === data._id ? data : transaction));
-                setEditingTransaction(null);
-            } else {
-                setSpendingHistory(prev => [...prev, data]);
-            }
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (editingTransaction) {
+                    setSpendingHistory(spendingHistory.map(transaction => transaction._id === data._id ? data : transaction));
+                    setEditingTransaction(null);
+                } else {
+                    setSpendingHistory(prev => [...prev, data]);
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
     }
 
     const handleChange = (event, value) => {
@@ -151,8 +152,8 @@ const UserDashboard = () => {
                 <form id="transaction-form" onSubmit={handleSubmit}>
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
-                            <TextField 
-                                label="Transaction Text" 
+                            <TextField
+                                label="Transaction Text"
                                 variant="outlined"
                                 fullWidth
                                 onChange={(e) => setTransactionText(e.target.value)}
@@ -160,49 +161,64 @@ const UserDashboard = () => {
                             <Button variant="contained" onClick={processTransactionText}>Process Text</Button>
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <TextField 
-                                label="Amount" 
+                            <TextField
+                                label="Amount"
                                 variant="outlined"
                                 fullWidth
                                 required
-                                value={amount} 
+                                value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <TextField 
+                            <TextField
                                 label="Category"
                                 variant="outlined"
                                 fullWidth
                                 required
-                                value={category} 
+                                value={category}
                                 onChange={(e) => setCategory(e.target.value)}
                             />
                         </Grid>
                         <Grid item xs={12}>
-                            <TextField 
+                            <TextField
                                 label="Description"
                                 variant="outlined"
                                 multiline
                                 rows={4}
                                 fullWidth
-                                value={description} 
+                                value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <TextField 
+                            <TextField
                                 label="Date"
                                 variant="outlined"
                                 type="date"
                                 fullWidth
                                 required
-                                value={date} 
+                                value={date}
                                 InputLabelProps={{
                                     shrink: true,
                                 }}
                                 onChange={(e) => setDate(e.target.value)}
                             />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <Select
+                                value={type}
+                                fullWidth
+                                onChange={(e) => setType(e.target.value)}
+                                label="Type"
+                                variant="outlined"
+                            >
+                                <MenuItem value="">
+                                    <em>None</em>
+                                </MenuItem>
+                                <MenuItem value="Spending">Spending</MenuItem>
+                                <MenuItem value="Income">Income</MenuItem>
+                            </Select>
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <Button type="submit" variant="contained" fullWidth>{editingTransaction ? 'Update' : 'Submit'}</Button>
@@ -216,11 +232,12 @@ const UserDashboard = () => {
                 <Table>
                     <TableHead>
                         <TableRow>
-                        <TableCell onClick={() => onSort('amount')} sx={{cursor: 'pointer'}}>Amount</TableCell>
-                        <TableCell onClick={() => onSort('category')} sx={{cursor: 'pointer'}}>Category</TableCell>
-                        <TableCell onClick={() => onSort('description')} sx={{cursor: 'pointer'}}>Description</TableCell>
-                        <TableCell onClick={() => onSort('date')} sx={{cursor: 'pointer'}}>Date</TableCell>
-                        <TableCell>Actions</TableCell>
+                            <TableCell onClick={() => onSort('amount')} sx={{ cursor: 'pointer' }}>Amount</TableCell>
+                            <TableCell onClick={() => onSort('category')} sx={{ cursor: 'pointer' }}>Category</TableCell>
+                            <TableCell onClick={() => onSort('description')} sx={{ cursor: 'pointer' }}>Description</TableCell>
+                            <TableCell onClick={() => onSort('date')} sx={{ cursor: 'pointer' }}>Date</TableCell>
+                            <TableCell onClick={() => onSort('type')} sx={{cursor: 'pointer'}}>Type</TableCell>
+                            <TableCell>Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -230,6 +247,7 @@ const UserDashboard = () => {
                                 <TableCell>{transaction.category}</TableCell>
                                 <TableCell>{transaction.description}</TableCell>
                                 <TableCell>{new Date(transaction.date).toLocaleDateString()}</TableCell>
+                                <TableCell>{transaction.type}</TableCell>
                                 <TableCell>
                                     <Button onClick={() => deleteTransaction(transaction._id)}>Delete</Button>
                                     <Button onClick={() => editTransaction(transaction)}>Edit</Button>

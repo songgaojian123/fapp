@@ -212,11 +212,12 @@ exports.edit_transaction = async function(req, res) {
                 return res.status(404).json({ message: "Transaction not found" });
             }
 
-            // Assuming that the updated transaction info is sent in the body of the request
+            
             transaction.amount = updatedTransaction.amount;
             transaction.category = updatedTransaction.category;
             transaction.description = updatedTransaction.description;
             transaction.date = updatedTransaction.date;
+            transaction.type = updatedTransaction.type;
 
             const savedUser = await user.save();
             res.status(200).json(savedUser.spendingHistory);

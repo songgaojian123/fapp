@@ -22,8 +22,14 @@ const TransactionSchema = new Schema({
     },
     date: {
         type: Date,
+    },
+    type: {
+        type: String,
+        enum: ['unspecified', 'income', 'expense'],
+        default: 'unspecified'
     }
 });
+
 
 const UserSchema = new Schema({
     name: {
