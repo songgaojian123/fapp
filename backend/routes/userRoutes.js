@@ -2,12 +2,17 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const { Configuration, OpenAIApi } = require("openai");
+const multer = require('multer');
+const readline = require('readline');
+const csv = require('csv-parser');
+const stream = require('stream');
+const fs = require('fs');
 const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
+    apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
 const UserController = require('../controllers/UserController');
-
+const upload = multer({ dest: 'uploads/' });
 
 router.get('/', UserController.get_users);
 router.post('/', UserController.create_user);
@@ -27,10 +32,10 @@ router.post('/:id/process-transaction-text', async (req, res) => {
         const { text } = req.body;
         const gptResponse = await openai.createCompletion({
             model: "text-davinci-003",
-            prompt: `Translate the following English text into four categories of structured transaction data in the following format: \nAmount: "A Number", Category: "A String", Description: "A String", and Date: "A Date"  in one line, separated by ",":\n${text}\n\n`,
-            temperature: 0,
+            prompt: `Translate the following English text (if its not english, translate it to English) into five categories of structured transaction data in one line, separated by \",\", and the value of those categories are by the following format: \nAmount: amont of the money, \"Number\" only\nCategory: merchandise's or transaction's category, like \"Food\", \"Sport\", \"Electronics\", \"Entertainment\", \"Transaction from bank\", etc. \"String\" only.\nDescription: the detail of the merchandise, \"String\" only.\nDate: \"Date\" in mm/dd/yyyy format \nType: \"String\" which can only be \"unspecified\", \"income\" or \"expense\" \n\n${text}\n\n`,
+            temperature: 1,
             max_tokens: 256,
-            top_p: 0,
+            top_p: 0.5,
             frequency_penalty: 0,
             presence_penalty: 0,
         });
@@ -75,6 +80,8 @@ const processTransactionData = (transactionData) => {
             case 'Date':
                 transactionObject['date'] = new Date(value.trim());
                 break;
+            case 'Type':
+                transactionObject['type'] = value.trim().toLowerCase();
             default:
                 break;
         }
@@ -83,4 +90,98 @@ const processTransactionData = (transactionData) => {
 };
 
 
+router.post('/:id/upload-transaction-csv', upload.single('file'), async (req, res) => {
+    let user;
+    try {
+        user = await User.findById(req.params.id);
+        if (user == null) {
+            return res.status(404).json({ message: "Cannot find user" });
+        }
+    } catch (err) {
+        return res.status(500).json({ message: err.message });
+    }
+
+    let foundHeader = false;
+    let columns = [];
+    const rl = readline.createInterface({
+        input: fs.createReadStream(req.file.path),
+        output: process.stdout,
+        terminal: false,
+    });
+
+    let processPromises = [];
+    rl.on('line', (line) => {
+        if (line.startsWith("---")) {
+            foundHeader = true;
+        } else if (foundHeader) {
+            if (columns.length === 0) {
+                columns = line.split(',');
+            } else {
+                const values = line.split(',');
+                let row = {};
+                columns.forEach((column, index) => {
+                    row[column] = values[index];
+                });
+                // Push each promise to the array
+                processPromises.push(new Promise(async (resolve, reject) => {
+                    try {
+                        console.log('Processing row:', row);
+                        await translateAndProcessRow(row, user);
+                        console.log('Processed row:', row);
+                        resolve();
+                    } catch (error) {
+                        console.log('Error processing row:', error);
+                        reject(error);
+                    }
+                }));
+            }
+        }
+    });
+    
+    rl.on('close', async () => {
+        try {
+            // Wait for all promises to complete
+            await Promise.all(processPromises);
+            await user.save();  // Save the user after all rows are processed.
+            console.log('User saved successfully');
+            res.status(201).json(user.spendingHistory);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    });
+
+    const translateAndProcessRow = async (row, user) => {
+        try {
+            const prompt = `Translate the following Chinese text to English: ${row['交易类型']}, ${row['商品']}`;
+            const gptResponse = await openai.createCompletion({
+                model: "text-davinci-003",
+                prompt,
+                max_tokens: 60,
+            });
+            const translation = gptResponse.data.choices[0].text.trim();
+            const [category, description] = translation.split(', ');
+            const typeMapping = {
+                '收入': 'income',
+                '支出': 'expense',
+            };
+            const type = typeMapping[row['收/支']] || 'unspecified';
+            const transaction = {
+                type,
+                description,
+                amount: parseFloat(row['金额(元)'].replace('¥', '')),
+                date: new Date(row['交易时间']),
+                category,
+            };
+            user.spendingHistory.push(transaction);
+        } catch (error) {
+            console.log('Error translating and processing row:', error);
+            throw error;
+        }
+    };
+});
+
 module.exports = router;
+
+
+
+

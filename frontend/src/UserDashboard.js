@@ -16,6 +16,8 @@ const UserDashboard = () => {
     const [type, setType] = useState("unspecified");  // New state for type
     const [spendingHistory, setSpendingHistory] = useState([]);
     const [sortConfig, setSortConfig] = useState(null);
+    const [file, setFile] = useState(null);
+    const [message, setMessage] = useState("");
     // Sorting function
     const onSort = (columnName) => {
         let direction = 'ascending';
@@ -144,9 +146,57 @@ const UserDashboard = () => {
         setPage(value);
     };
 
+    const handleFileUpload = async () => {
+        if (!file) {
+            setMessage("Please select a file to upload.");
+            return;
+        }
+    
+        const formData = new FormData();
+        formData.append('file', file);
+    
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `/users/${user._id}/upload-transaction-csv`, {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            },
+            body: formData,
+        });
+    
+        if (response.ok) {
+            const responseData = await response.json();
+    
+            if (responseData.spendingHistory) {
+                setSpendingHistory(responseData.spendingHistory);
+                setMessage("Upload successful and transactions processed!");
+            }
+        } else {
+            setMessage("An error occurred during the file upload.");
+        }
+    };
+    
+
+
     return (
         <Container>
             <Typography variant="h4" gutterBottom>Welcome, {user.name}</Typography>
+            <Box sx={{ my: 3 }}>
+                <Typography variant="h5" gutterBottom>Upload Your WeChatPay Statement Here</Typography>
+                <input
+                    accept=".csv"
+                    style={{ display: 'none' }}
+                    id="contained-button-file"
+                    type="file"
+                    onChange={(e) => setFile(e.target.files[0])}
+                />
+                <label htmlFor="contained-button-file">
+                    <Button variant="contained" component="span">
+                        Choose file
+                    </Button>
+                </label>
+                <Button variant="contained" onClick={handleFileUpload}>Upload</Button>
+                {message && <Typography variant="subtitle1" gutterBottom>{message}</Typography>}
+            </Box>
 
             <Box sx={{ my: 3 }}>
                 <Typography variant="h5" gutterBottom>Add New Transaction</Typography>
@@ -248,7 +298,7 @@ const UserDashboard = () => {
                                 <TableCell>{transaction.category}</TableCell>
                                 <TableCell>{transaction.description}</TableCell>
                                 <TableCell>{new Date(transaction.date).toLocaleDateString()}</TableCell>
-                                <TableCell>{transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}</TableCell> 
+                                <TableCell>{transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}</TableCell>
                                 <TableCell>
                                     <Button onClick={() => deleteTransaction(transaction._id)}>Delete</Button>
                                     <Button onClick={() => editTransaction(transaction)}>Edit</Button>
