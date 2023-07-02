@@ -145,10 +145,20 @@ router.post('/:id/upload-transaction-csv', upload.single('file'), async (req, re
             await user.save();  // Save the user after all rows are processed.
             console.log('User saved successfully');
             res.status(201).json(user.spendingHistory);
+    
+            // Delete the file
+            fs.unlink(req.file.path, (err) => {
+                if (err) {
+                    console.error('Error while deleting the file:', err);
+                } else {
+                    console.log('Successfully deleted the file.');
+                }
+            });
         } catch (error) {
             res.status(500).json({ message: error.message });
         }
     });
+    
 
     const translateAndProcessRow = async (row, user) => {
         try {
