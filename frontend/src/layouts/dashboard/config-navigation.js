@@ -49,7 +49,7 @@ export function useNavData() {
       // OVERVIEW
       // ----------------------------------------------------------------------
       {
-        subheader: 'overview v5.1.0',
+        subheader: 'overview',
         items: [
           { title: 'one', path: paths.dashboard.root, icon: ICONS.dashboard },
           { title: 'two', path: paths.dashboard.two, icon: ICONS.ecommerce },
