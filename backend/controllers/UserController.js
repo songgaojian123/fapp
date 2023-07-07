@@ -32,7 +32,26 @@ exports.create_user = async function(req, res) {
 
         try {
             const savedUser = await newUser.save();
-            res.status(201).json(savedUser);
+
+            // create a token with the user's id as the payload
+            const token = jwt.sign(
+                {
+                    email: savedUser.email,
+                    userId: savedUser._id,
+                },
+                process.env.JWT_SECRET_KEY, // replace with your secret key
+                {
+                    expiresIn: '1h', // specify the token expiry time
+                }
+            );
+
+            // return the user and token
+            res.status(201).json({
+                message: "Auth successful",
+                user: savedUser,
+                token: token,
+            });
+
         } catch (err) {
             res.status(400).json({ message: err.message });
         }
@@ -228,3 +247,31 @@ exports.edit_transaction = async function(req, res) {
         res.status(500).json({ message: err.message });
     }
 };
+
+exports.get_me = (req, res, next) => {
+    // extract user ID from the authenticated JWT token
+    const userId = req.user.userId;
+    
+    User.findById(userId)
+        .then(user => {
+            if (!user) {
+                res.status(404).json({ message: "User not found" });
+            } else {
+                // do not send password and other sensitive info, only send required user info
+                const userInfo = {
+                    id: user._id,
+                    username: user.name,
+                    email: user.email,
+                    spendingHistory: user.spendingHistory, // add spending history
+                    // add other user info you want to send here
+                };
+                res.json(userInfo);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500).json({ error: err });
+        });
+};
+
+  

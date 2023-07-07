@@ -4,9 +4,8 @@ const User = require('../models/User');
 const { Configuration, OpenAIApi } = require("openai");
 const multer = require('multer');
 const readline = require('readline');
-const csv = require('csv-parser');
-const stream = require('stream');
 const fs = require('fs');
+const jwt = require('jsonwebtoken');
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
 });
@@ -14,17 +13,27 @@ const openai = new OpenAIApi(configuration);
 const UserController = require('../controllers/UserController');
 const upload = multer({ dest: 'uploads/' });
 
+//----------------------------------------------------
+//router.use((req, res, next) => {
+    //console.log('Incoming request:', req.method, req.path);
+    //next();
+//});
+//-----------------------------------------------
 router.get('/', UserController.get_users);
 router.post('/', UserController.create_user);
 router.post('/login', UserController.user_login);
+router.get('/me', authenticateToken, UserController.get_me);
 router.get('/:id', UserController.get_user);
 router.patch('/:id', UserController.update_user);
 router.delete('/:id', UserController.delete_user);
 router.post('/:id/transactions', UserController.add_transaction);
 
+
+
 // New routes for deleting and editing transactions
 router.delete('/:id/transactions/:transactionId', UserController.delete_transaction);
 router.patch('/:id/transactions/:transactionId', UserController.edit_transaction);
+
 
 router.post('/:id/process-transaction-text', async (req, res) => {
     const userId = req.params.id;
@@ -40,9 +49,9 @@ router.post('/:id/process-transaction-text', async (req, res) => {
             presence_penalty: 0,
         });
         const transactionData = gptResponse.data.choices[0].text.trim();
-        console.log("transactionData:", transactionData); // Log the GPT-3 output
+        
         const transactionObject = processTransactionData(transactionData);
-        console.log("transactionObject:", transactionObject); // Log the processed transaction data
+        
         const user = await User.findById(userId);
         if (user) {
             user.spendingHistory.push(transactionObject);
@@ -61,7 +70,25 @@ router.post('/:id/process-transaction-text', async (req, res) => {
 
 
 
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (token == null) return res.sendStatus(401);
+  
+    jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
+      if (err) {
+        console.error("Token verification error: ", err);
+        return res.sendStatus(403);
+      }
+      req.user = user;
+      next();
+    });
+  }
+  
 
+
+  
 const processTransactionData = (transactionData) => {
     let transactionObject = {};
     const splitData = transactionData.split(',');
@@ -125,7 +152,7 @@ router.post('/:id/upload-transaction-csv', upload.single('file'), async (req, re
                 // Push each promise to the array
                 processPromises.push(new Promise(async (resolve, reject) => {
                     try {
-                        console.log('Processing row:', row);
+                        
                         await translateAndProcessRow(row, user);
                         console.log('Processed row:', row);
                         resolve();
@@ -184,14 +211,13 @@ router.post('/:id/upload-transaction-csv', upload.single('file'), async (req, re
             };
             user.spendingHistory.push(transaction);
         } catch (error) {
-            console.log('Error translating and processing row:', error);
+            
             throw error;
         }
     };
 });
 
 module.exports = router;
-
 
 
 

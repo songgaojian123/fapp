@@ -1,0 +1,1 @@
+export { default as FinAppView } from './financial-app-view';
